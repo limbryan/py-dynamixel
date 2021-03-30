@@ -2,6 +2,13 @@ import os, sys
 import glob
 from dynamixel_sdk import *
 
+### MOTOR ADDRESSES - 
+## Addresses for XM430-W350
+ADDR_PRO_TORQUE_ENABLE = 64 
+ADDR_PRO_GOAL_POSITION = 116
+ADDR_PRO_PRESENT_POSITION = 132
+
+
 def _get_available_ports():
     """ Tries to find the available serial ports on your system. """
     if platform.system() == 'Darwin':
@@ -29,6 +36,7 @@ def _get_available_ports():
     else:
         raise EnvironmentError('{} is an unsupported platform, cannot find serial ports!'.format(platform.system()))
     return []
+
 
 def get_available_ports():
     ports = _get_available_ports()
@@ -108,7 +116,7 @@ class DxlIO():
 
     def _enable_torque(self, m_id, enable=1):
         """Enables or disables torque of a motor"""
-        ADDR_PRO_TORQUE_ENABLE = 64 
+        
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, m_id, ADDR_PRO_TORQUE_ENABLE, enable)
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
@@ -158,15 +166,15 @@ class DxlIO():
                 return values
 
     def set_goal_position(self, ids, values):
-        ADDR_PRO_GOAL_POSITION = 116
+        
         self.write(ids, ADDR_PRO_GOAL_POSITION, values)
         
     def get_goal_position(self, ids):
-        ADDR_PRO_GOAL_POSITION = 116
+        
         goal_position = self.read(ids, ADDR_PRO_GOAL_POSITION)
         return goal_position
 
     def get_present_position(self, ids):
-        ADDR_PRO_PRESENT_POSITION = 132
+        
         present_position = self.read(ids, ADDR_PRO_PRESENT_POSITION)
         return present_position

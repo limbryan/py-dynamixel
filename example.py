@@ -2,7 +2,6 @@ import numpy as np
 import time
 import src.io as io
 
-
 ports = io.get_available_ports()
 print('available ports:', ports)
 if not ports:
