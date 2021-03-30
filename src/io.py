@@ -1,13 +1,19 @@
 import os, sys
 import glob
 from dynamixel_sdk import *
+import src.conversion as conv
 
 ### MOTOR ADDRESSES - 
 ## Addresses for XM430-W350
-ADDR_PRO_TORQUE_ENABLE = 64 
+ADDR_PRO_TORQUE_ENABLE = 64
+ADDR_PRO_LED = 65
+ADDR_PRO_POSITION_D = 80
+ADDR_PRO_POSITION_I = 82
+ADDR_PRO_POSITION_P = 84
 ADDR_PRO_GOAL_POSITION = 116
+ADDR_PRO_PRESENT_CURRENT = 126
+ADDR_PRO_PRESENT_VELOCITY = 128
 ADDR_PRO_PRESENT_POSITION = 132
-
 
 def _get_available_ports():
     """ Tries to find the available serial ports on your system. """
@@ -166,15 +172,24 @@ class DxlIO():
                 return values
 
     def set_goal_position(self, ids, values):
-        
+        values = conv.degree_to_pulses(values) 
         self.write(ids, ADDR_PRO_GOAL_POSITION, values)
         
     def get_goal_position(self, ids):
-        
         goal_position = self.read(ids, ADDR_PRO_GOAL_POSITION)
+        goal_position = conv.pulses_to_degree(goal_position)
         return goal_position
 
-    def get_present_position(self, ids):
-        
+    def get_present_position(self, ids):     
         present_position = self.read(ids, ADDR_PRO_PRESENT_POSITION)
+        present_position = conv.pulses_to_degree(present_position)
         return present_position
+
+    def get_present_velocity(self, ids):     
+        present_velocity = self.read(ids, ADDR_PRO_PRESENT_VELOCITY)
+        return present_velocity
+
+    def get_present_current(self, ids):     
+        present_current = self.read(ids, ADDR_PRO_PRESENT_CURRENT)
+        return present_current
+    

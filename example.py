@@ -20,9 +20,9 @@ ids = found_ids
 
 dxl_io.enable_torque(ids)
 
-dxl_io.set_goal_position(ids, [10, 10])
+dxl_io.set_goal_position(ids, np.array([0, 90]))
 time.sleep(5)
-dxl_io.set_goal_position(ids, [1034, 1034])
+dxl_io.set_goal_position(ids, np.array([180, 0]))
 time.sleep(5)
 
 dxl_io.disable_torque(ids)
