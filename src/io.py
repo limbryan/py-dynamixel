@@ -1,5 +1,6 @@
 import os, sys
 import glob
+import numpy as np
 from dynamixel_sdk import *
 import src.conversion as conv
 
@@ -115,10 +116,26 @@ class DxlIO():
         else:
             print("[ID:%03d] ping Succeeded. Dynamixel model number : %d" % (motor_id, dxl_model_number))
             return True
-        
+
+    def broadcast_ping(self):
+        # Try to broadcast ping the Dynamixel                                                                                      
+        dxl_data_list, dxl_comm_result = self.packetHandler.broadcastPing(self.portHandler)
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+
+        found_ids = []
+        print("Detected Dynamixel :")
+        for dxl_id in dxl_data_list:
+            print("[ID:%03d] model version : %d | firmware version : %d" % (dxl_id, dxl_data_list.get(dxl_id)[0], dxl_data_list.get(dxl_id)[1]))
+            found_ids.append(dxl_id)
+            
+        return found_ids
+    
     def scan(self, ids=range(254)):
         """ Pings all ids within the specified list, by default it finds all the motors connected to the bus. """
-        return [m_id for m_id in ids if self.ping(m_id)]
+        #found_ids = [m_id for m_id in ids if self.ping(m_id)] # if using for loop over ids
+        found_ids = self.broadcast_ping() # if using broadcast ping - faster
+        return found_ids
 
     def _enable_torque(self, m_id, enable=1):
         """Enables or disables torque of a motor"""
@@ -147,7 +164,6 @@ class DxlIO():
 
     ## values for read and write are all in motor ticks
     ## conversion for units happens in corresponding set and get fucntions
-            
     def write(self, ids, addr, goal):
         """ takes a list of ids and the control address of desired quantity, and the actual quantities to write to """
         if self._sync_write and len(ids)>1:
@@ -169,7 +185,8 @@ class DxlIO():
                 dxl_value, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, m_id,
                                                                                     addr)
                 values.append(dxl_value)
-                return values
+            values = np.array(values)
+            return values
 
     def set_goal_position(self, ids, values):
         values = conv.degree_to_pulses(values) 

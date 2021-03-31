@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+# MAINLY FROM PYPOT CONVERSION
+# - WROTE SOME CUSTOM ONES ALSO - MORE FRIENDLY TO ARRAYS
+# - BUT CURRENTLY DOE NOT ACCMODATE TO MANY DIFFETN TYTPES OF MOTORS
 """
     This module describes all the conversion method used to transform value from the representation used by the dynamixel motor to a more standard form (e.g. degrees, volt...).
 
@@ -17,7 +19,6 @@ import itertools
 from enum import Enum
 
 # MARK: - Position
-
 position_range = {
     'MX': (4096, 360.0),
     'SR': (4096, 360.0),
@@ -53,6 +54,8 @@ velocity = {  # in degree/s
 }
 
 
+
+## custom written
 def pulses_to_degree(values):
     ''' takes in an array of values'''
     degree = values*(360/4096)
@@ -61,6 +64,8 @@ def pulses_to_degree(values):
 def degree_to_pulses(values):
     pulses = values*(4096/360)
     return pulses.astype(int) 
+##
+
 
 
 def dxl_to_degree(value, model):
