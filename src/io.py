@@ -16,6 +16,12 @@ ADDR_PRO_PRESENT_CURRENT = 126
 ADDR_PRO_PRESENT_VELOCITY = 128
 ADDR_PRO_PRESENT_POSITION = 132
 
+# Data Byte Length                                                                                                                                                    
+LEN_PRO_LED             = 1
+LEN_PRO_GOAL_POSITION       = 4
+LEN_PRO_PRESENT_POSITION    = 4
+
+
 def _get_available_ports():
     """ Tries to find the available serial ports on your system. """
     if platform.system() == 'Darwin':
@@ -54,8 +60,8 @@ class DxlIO():
     def __init__(self,
                  port, baudrate=3000000,
                  protocol=2,
-                 use_sync_read=False,
-                 use_sync_write=False,
+                 use_bulk_read=False,
+                 use_bulk_write=False,
                  convert=True):
         """ At instanciation, it opens the serial port and sets the communication parameters.
             :param string port: the serial port to use (e.g. Unix (/dev/tty...), Windows (COM...)).
@@ -69,15 +75,21 @@ class DxlIO():
             """
         self._known_models = {}
         self._known_mode = {}
-
-        self._sync_read = use_sync_read
-        self._sync_write = use_sync_write
-        self._convert = convert
-
+        
         self.protocol_version = protocol
         self.portHandler = PortHandler(port)
         self.packetHandler = PacketHandler(protocol)
 
+        self._bulk_read = use_bulk_read
+        self._bulk_write = use_bulk_write
+        if use_bulk_read: 
+            # Initialize GroupBulkWrite instance                                                                                                            
+            self.groupBulkWrite = GroupBulkWrite(self.portHandler, self.packetHandler)
+        if use_bulk_write:
+            # Initialize GroupBulkRead instace for Present Position                                                                                  
+            self.groupBulkRead = GroupBulkRead(self.portHandler, self.packetHandler)
+            
+        self._convert = convert
         self.open_port(port, baudrate)
 
     def open_port(self, port, baudrate):
@@ -104,7 +116,27 @@ class DxlIO():
     def close_port(self):
         # Close port
         self.portHandler.closePort()
-        
+
+    def init_bulk_read(self, ids):
+        for m_id in ids:
+            # Add parameter storage for all Dynamixel ids present position
+            dxl_addparam_result = groupBulkRead.addParam(m_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupBulkRead addparam failed" % DXL1_ID)
+                quit()
+            
+            # Add parameter storage for all Dynamixel ids LED value                                                                                          
+            dxl_addparam_result = groupBulkRead.addParam(m_id, ADDR_PRO_LED, LEN_PRO_LED)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupBulkRead addparam failed" % DXL2_ID)
+                quit()
+
+        return 1
+    
+    def init_bulk_write(self): 
+
+        return 0
+    
     def ping(self, motor_id):
         dxl_model_number, dxl_comm_result, dxl_error = self.packetHandler.ping(self.portHandler, motor_id)
         if dxl_comm_result != COMM_SUCCESS:
