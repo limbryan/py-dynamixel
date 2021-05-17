@@ -80,6 +80,9 @@ class DxlIO():
         self.portHandler = PortHandler(port)
         self.packetHandler = PacketHandler(protocol)
 
+        self._sync_write = False
+        self._sync_read = False
+
         self._bulk_read = use_bulk_read
         self._bulk_write = use_bulk_write
         if use_bulk_read: 
