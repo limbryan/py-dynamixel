@@ -223,8 +223,13 @@ class DxlIO():
             values = np.array(values)
             return values
 
-    def set_goal_position(self, ids, values):
-        values = conv.degree_to_pulses(values) 
+    def set_goal_position(self, ids, values, units="rads"):
+
+        if units == "rads":
+            values = conv.rads_to_pulses(values)
+        elif units == "deg":
+            values = conv.degree_to_pulses(values)
+        
         self.write(ids, ADDR_PRO_GOAL_POSITION, values)
         
     def get_goal_position(self, ids):
@@ -232,9 +237,14 @@ class DxlIO():
         goal_position = conv.pulses_to_degree(goal_position)
         return goal_position
 
-    def get_present_position(self, ids):     
+    def get_present_position(self, ids, units="rads"):     
         present_position = self.read(ids, ADDR_PRO_PRESENT_POSITION)
-        present_position = conv.pulses_to_degree(present_position)
+        
+        if units == "rads":
+            present_position = conv.pulses_to_rads(present_position)
+        elif units == "deg":
+            present_position = conv.pulses_to_degree(present_position)
+            
         return present_position
 
     def get_present_velocity(self, ids):     

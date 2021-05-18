@@ -4,7 +4,6 @@ import src.io as io
 
 from sin_controller import SinusoidController
 
-
 class Hexapod():
     def __init__(self, port, ctrl_freq):
 
@@ -23,6 +22,8 @@ class Hexapod():
         # this is always the trajectory that will be executed
         # it is a list of np.arrays the joint angles of every motor
         self._traj = []
+
+        self.enable_torques()
         
     def enable_torques(self):
         self.dxl_io.enable_torque(self.ids)
@@ -38,19 +39,39 @@ class Hexapod():
     def relax(self):
         "Places hexapod on its belly"
         print("#### RELAX POSE CONTROLLER ####")
-
-    def neutral_controller(self):
-        "neutral pose - robot standing up with legs straight"
-        print("#### NEUTRAL POSE CONTROLLER ####")
-        time = 0.2
-        
-    def run_sin_controller(self, ctrl, time):        
-        controller = SinusoidController(ctrl)
-        for t in arange(0,time,self.ctrl_freq):
-            command = controller.commanded_jointpos(t)
+        time = 2.0
+        for t in arange(0,time,1.0/self.ctrl_freq):
+            command = np.array([np.pi, np.pi, np.pi]*6)
+            # second joint values have to follow a trajectory
+            a = (time-t)/time
+            b = t/time
+            for i in range(1,18,3):
+                command[i] += (a*(np.pi/4) / 6.0 + b*((np.pi/2)*1.2))
+            
             self._traj.append(command)
 
         self._exec_traj()
+            
+    def neutral_controller(self):
+        "neutral pose - robot standing up with legs straight"
+        print("#### NEUTRAL POSE CONTROLLER ####")
+        time = 0.1
+        for t in arange(0,time,1.0/self.ctrl_freq):
+            command = np.array([np.pi, np.pi, np.pi]*6)
+            self._traj.append(command)
+
+        self._exec_traj()
+        time.sleep(0.5)
+        
+    def run_sin_controller(self, ctrl, time):        
+        controller = SinusoidController(ctrl)
+        for t in arange(0,time,1.0/self.ctrl_freq):
+            command = controller.commanded_jointpos(t)
+            command = command+np.pi # offset differnce from simulator to real world configuration
+            self._traj.append(command)
+
+        self._exec_traj()
+        time.sleep(0.5)
         
     def _exec_traj():
         "execeute trajectories that are saved in _traj"
@@ -69,9 +90,12 @@ class Hexapod():
         # reset the traj variable
         self._traj = []
 
-        
-def main():
+    # add some functions for conversion to hexapod default angles - i.e neutral position is 180 deg absolute
+    # especially sin controller commands
 
+    
+def main():
+    ## Example to task Hexapod class ##
     ports = io.get_available_ports()
     print('available ports:', ports)
     if not ports:
@@ -80,6 +104,22 @@ def main():
     port = ports[0]
     print('Using the first on the list', port)
 
+    ctrl_freq = 30
+    Hexa = Hexapod(port, ctrl_freq)
 
-    Hexa = Hexapod(port, 30)
+    # TRIPOD GAIT
+    ctrl = [1, 0, 0.5, 0.25, 0.25, 0.5,
+            1, 0.5, 0.5, 0.25, 0.75, 0.5,
+            1, 0, 0.5, 0.25, 0.25, 0.5,
+            1, 0, 0.5, 0.25, 0.75, 0.5,
+            1, 0.5, 0.5, 0.25, 0.25, 0.5,
+            1, 0, 0.5, 0.25, 0.75, 0.5]
+    ctrl = np.array(ctrl)
+
+    Hexa.neutral_controller()
+    #Hexa.run_sin_controller(ctrl) 
+    Hexa.shutdown()
     
+
+if __name__ == "__main__":
+    main()
