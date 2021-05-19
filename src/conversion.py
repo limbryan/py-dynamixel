@@ -71,7 +71,7 @@ def pulses_to_rads(values):
     return rads
 
 def rads_to_pulses(values):
-    pulses = values*(4096/2*numpy.pi)
+    pulses = values*(4096/(2*numpy.pi))
     return pulses.astype(int) 
 
 
