@@ -62,7 +62,9 @@ class DxlIO():
                  protocol=2,
                  use_bulk_read=False,
                  use_bulk_write=False,
-                 convert=True):
+                 convert=True,
+                 use_sync_read=False,
+                 use_sync_write=False):
         """ At instanciation, it opens the serial port and sets the communication parameters.
             :param string port: the serial port to use (e.g. Unix (/dev/tty...), Windows (COM...)).
             :param int baudrate: default for new motors: 57600, for PyPot motors: 1000000
@@ -80,18 +82,24 @@ class DxlIO():
         self.portHandler = PortHandler(port)
         self.packetHandler = PacketHandler(protocol)
 
-        self._sync_write = False
-        self._sync_read = False
+        self._sync_write = use_sync_write
+        self._sync_read = use_sync_read
 
         self._bulk_read = use_bulk_read
         self._bulk_write = use_bulk_write
+
+        # Bulk definition
         if use_bulk_read: 
             # Initialize GroupBulkWrite instance                                                                                                            
             self.groupBulkWrite = GroupBulkWrite(self.portHandler, self.packetHandler)
         if use_bulk_write:
             # Initialize GroupBulkRead instace for Present Position                                                                                  
             self.groupBulkRead = GroupBulkRead(self.portHandler, self.packetHandler)
-            
+
+        # Sync definitions
+        self.groupSyncWrite = GroupSyncWrite(self.portHandler, self.packetHandler, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION)
+        self.groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+
         self._convert = convert
         self.open_port(port, baudrate)
 
@@ -197,18 +205,36 @@ class DxlIO():
             self._enable_torque(m_id, enable=0)
 
 
+    def _get_byte_array_sync(self, dxl_goal_position_pulse):
+        return [
+            DXL_LOBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
+            DXL_HIBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
+            DXL_LOBYTE(DXL_HIWORD(dxl_goal_position_pulse)),
+            DXL_HIBYTE(DXL_HIWORD(dxl_goal_position_pulse))
+        ]
+
+
     ## values for read and write are all in motor ticks
     ## conversion for units happens in corresponding set and get fucntions
-    def write(self, ids, addr, goal):
+    def write(self, list_ids, addr, array_goals_pulses):
         """ takes a list of ids and the control address of desired quantity, and the actual quantities to write to """
-        if self._sync_write and len(ids)>1:
-            print("Not yet implemented sync write")
-        else: 
+        if self._sync_write and len(list_ids)>1:
+
+            for dxl_id, goal_position_pulse in zip(list_ids, array_goals_pulses):
+                dxl_addparam_result = self.groupSyncWrite.addParam(dxl_id, self._get_byte_array_sync(goal_position_pulse))
+                if dxl_addparam_result != True:
+                    print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
+                    # quit()
+
+            dxl_comm_result = self.groupSyncWrite.txPacket()
+
+            self.groupSyncWrite.clearParam()
+        else:
             # write something
-            for i in range(len(ids)): 
-                dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, ids[i],
+            for i in range(len(list_ids)):
+                dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, list_ids[i],
                                                                                addr,
-                                                                               goal[i])
+                                                                               array_goals_pulses[i])
     def read(self, ids, addr):
         """takes a list of ids and the control address of the desired quantity wanting tobe read"""
         values = [] # list of values read
@@ -254,4 +280,4 @@ class DxlIO():
     def get_present_current(self, ids):     
         present_current = self.read(ids, ADDR_PRO_PRESENT_CURRENT)
         return present_current
-    
+
