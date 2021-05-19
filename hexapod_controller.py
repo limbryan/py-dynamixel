@@ -8,7 +8,7 @@ class Hexapod():
     def __init__(self, port, ctrl_freq):
 
         self.port = port
-        self.dxl_io = io.DxlIO(port, baudrate=2000000)
+        self.dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True)
         print('Connected!')
 
         self.ctrl_freq = ctrl_freq
@@ -108,7 +108,7 @@ def main():
     port = ports[0]
     print('Using the first on the list', port)
 
-    ctrl_freq = 1
+    ctrl_freq = 100
     Hexa = Hexapod(port, ctrl_freq)
 
     # TRIPOD GAIT
@@ -122,7 +122,7 @@ def main():
 
     Hexa.neutral_controller()
     #Hexa.relax()
-    #Hexa.run_sin_controller(ctrl, duration=1.0) 
+    Hexa.run_sin_controller(ctrl, duration=2.0)
     Hexa.shutdown()
     
 
