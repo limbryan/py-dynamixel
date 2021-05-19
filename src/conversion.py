@@ -67,11 +67,11 @@ def degree_to_pulses(values):
 
 def pulses_to_rads(values):
     ''' takes in an array of values'''
-    rads = values*(2*np.pi/4096)
+    rads = values*(2*numpy.pi/4096)
     return rads
 
 def rads_to_pulses(values):
-    pulses = values*(4096/2*np.pi)
+    pulses = values*(4096/2*numpy.pi)
     return pulses.astype(int) 
 
 

@@ -39,12 +39,12 @@ class Hexapod():
     def relax(self):
         "Places hexapod on its belly"
         print("#### RELAX POSE CONTROLLER ####")
-        time = 2.0
-        for t in arange(0,time,1.0/self.ctrl_freq):
+        duration = 2.0
+        for t in np.arange(0,duration,1.0/self.ctrl_freq):
             command = np.array([np.pi, np.pi, np.pi]*6)
             # second joint values have to follow a trajectory
-            a = (time-t)/time
-            b = t/time
+            a = (duration-t)/duration
+            b = t/duration
             for i in range(1,18,3):
                 command[i] += (a*(np.pi/4) / 6.0 + b*((np.pi/2)*1.2))
             
@@ -55,17 +55,17 @@ class Hexapod():
     def neutral_controller(self):
         "neutral pose - robot standing up with legs straight"
         print("#### NEUTRAL POSE CONTROLLER ####")
-        time = 0.1
-        for t in arange(0,time,1.0/self.ctrl_freq):
+        duration = 0.1
+        for t in np.arange(0,duration,1.0/self.ctrl_freq):
             command = np.array([np.pi, np.pi, np.pi]*6)
             self._traj.append(command)
 
         self._exec_traj()
         time.sleep(0.5)
         
-    def run_sin_controller(self, ctrl, time):        
+    def run_sin_controller(self, ctrl, duration):        
         controller = SinusoidController(ctrl)
-        for t in arange(0,time,1.0/self.ctrl_freq):
+        for t in np.arange(0,duration,1.0/self.ctrl_freq):
             command = controller.commanded_jointpos(t)
             command = command+np.pi # offset differnce from simulator to real world configuration
             self._traj.append(command)
@@ -73,20 +73,24 @@ class Hexapod():
         self._exec_traj()
         time.sleep(0.5)
         
-    def _exec_traj():
+    def _exec_traj(self):
         "execeute trajectories that are saved in _traj"
-        start = time.clock()
-        for i in len(self._traj):
+        start = time.time()
+        for i in range(len(self._traj)):
             joint_pos = self._traj[i]
+            print(joint_pos, self.ids)
             self.dxl_io.set_goal_position(self.ids, joint_pos)
-            elapsed = time.clock() - start
+            elapsed = time.time() - start
+            print(elapsed)
+            print(1.0/self.ctrl_freq)
             time.sleep((1.0/self.ctrl_freq) - elapsed)
-
+            
             if ((1.0/self.ctrl_freq) - elapsed) < 0:
                 print("Control frequency is too high")
 
-            start = time.clock()
-            
+            start = time.time()
+
+        print(self._traj)
         # reset the traj variable
         self._traj = []
 
@@ -104,7 +108,7 @@ def main():
     port = ports[0]
     print('Using the first on the list', port)
 
-    ctrl_freq = 30
+    ctrl_freq = 1
     Hexa = Hexapod(port, ctrl_freq)
 
     # TRIPOD GAIT
@@ -117,7 +121,8 @@ def main():
     ctrl = np.array(ctrl)
 
     Hexa.neutral_controller()
-    #Hexa.run_sin_controller(ctrl) 
+    #Hexa.relax()
+    #Hexa.run_sin_controller(ctrl, duration=1.0) 
     Hexa.shutdown()
     
 
