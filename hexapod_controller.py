@@ -78,11 +78,8 @@ class Hexapod():
         start = time.time()
         for i in range(len(self._traj)):
             joint_pos = self._traj[i]
-            print(joint_pos, self.ids)
             self.dxl_io.set_goal_position(self.ids, joint_pos)
             elapsed = time.time() - start
-            print(elapsed)
-            print(1.0/self.ctrl_freq)
             time.sleep((1.0/self.ctrl_freq) - elapsed)
             
             if ((1.0/self.ctrl_freq) - elapsed) < 0:
@@ -90,7 +87,6 @@ class Hexapod():
 
             start = time.time()
 
-        print(self._traj)
         # reset the traj variable
         self._traj = []
 
@@ -122,7 +118,7 @@ def main():
 
     Hexa.neutral_controller()
     #Hexa.relax()
-    Hexa.run_sin_controller(ctrl, duration=2.0)
+    #Hexa.run_sin_controller(ctrl, duration=2.0)
     Hexa.shutdown()
     
 
