@@ -7,6 +7,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
 import matplotlib.pyplot as plt
 
+import time
+import src.io as io
+from hexapod_controller import Hexapod
+
+
 ## Example to task Hexapod class ##
 ports = io.get_available_ports()
 print('available ports:', ports)
@@ -25,6 +30,7 @@ def key_event(event, args):
         Hexa.shutdown()
         sys.exit(0)
 
+
 def click_event(event, args):
     '''
     # reutrns a list of tupples of x-y points
@@ -40,13 +46,13 @@ def click_event(event, args):
     if event.button == 1:
         selected_x = int(event.xdata)
         selected_y = int(event.ydata)
-        selected_solution = data[(data["x_bin"] == selected_x) & (data["y_bin"] == selected_y)]
+        selected_solution = data[(data["y_bin"] == selected_x) & (data["x_bin"] == selected_y)]
         #selected_solution = data[(data["y_bin"] == selected_x) & (data["z_bin"] == selected_y)]
 
         # For hexapod omnitask
         print("SELECTED SOLUTION SHAPE: ",selected_solution.shape)
         selected_solution = selected_solution.iloc[0, :]
-        selected_ctrl = selected_solution.iloc[5:-2].to_numpy()
+        selected_ctrl = selected_solution.iloc[4:-2].to_numpy()
         #print(selected_ctrl[0].shape) #(1,36)
 
         #hexapod uni
@@ -62,7 +68,11 @@ def click_event(event, args):
         Hexa.run_sin_controller(selected_ctrl, duration=3.0)
         Hexa.neutral_controller()
         print("EXECUTE CONTROLLER")
+
+
     
+
+
 
 if __name__ == "__main__":
 
@@ -72,18 +82,22 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    data = pd.read_csv(args.filename)
-    data = data.iloc[:,:-1] # drop the last column which was made because there is a comma after last value i a line
+    data = pd.read_csv(args.filename, delim_whitespace=True)
+    # data = data.iloc[:,:-1] # drop the last column which was made because there is a comma after last value i a line
     #data = np.loadtxt(args.filename)
     
+        
+    data["scale_x"] = (data.iloc[:,1] + 1.5) / 3
+    data["scale_y"] = (data.iloc[:,2] + 1.5) / 3
+
     #For Hexapod
-    data['x_bin']=pd.cut(x = data.iloc[:,1],
+    data['x_bin']=pd.cut(x = data["scale_x"],
                         bins = [p/100 for p in range(101)], 
                         labels = [p for p in range(100)])
-    data['y_bin']=pd.cut(x = data.iloc[:,2],
+    data['y_bin']=pd.cut(x = data["scale_y"],
                         bins = [p/100 for p in range(101)],
                         labels = [p for p in range(100)])
-        
+
     #cmap = matplotlib.cm.get_cmap('Spectral') # Getting a list of color values
     #data['color_dict'] = pd.Series({k:cmap(1) for k in data['scaled_x']})
     
@@ -92,7 +106,7 @@ if __name__ == "__main__":
     # FOR BINS / GRID
     if args.plot_type == "grid":
         fig, ax = plt.subplots()
-        data.plot.scatter(x="x_bin",y="y_bin",c=0,colormap="viridis", s=2, ax=ax)
+        data.plot.scatter(x="y_bin",y="x_bin",c=3,colormap="viridis", s=2, ax=ax)
         plt.xlim(0,100)
         plt.ylim(0,100)    
     else:

@@ -24,11 +24,11 @@ class SinusoidController():
         timestep = int(np.floor(t*ARRAY_DIM)%ARRAY_DIM)
     
         for i in range(0,NUM_JOINTS,NUM_JOINTS_PER_LEG):
-            joint_angles[i] = top_joint_maxrange*self._joint_signals[i,timestep]
+            joint_angles[i] = -top_joint_maxrange*self._joint_signals[i,timestep]
         for j in range(1,NUM_JOINTS,NUM_JOINTS_PER_LEG):
-            joint_angles[j] = bottom_joint_maxrange*self._joint_signals[j,timestep]
+            joint_angles[j] = -bottom_joint_maxrange*self._joint_signals[j,timestep]
         for k in range(2,NUM_JOINTS,NUM_JOINTS_PER_LEG):
-            joint_angles[k] = bottom_joint_maxrange*self._joint_signals[k,timestep]
+            joint_angles[k] = -bottom_joint_maxrange*self._joint_signals[k,timestep]
 
         return joint_angles
 
