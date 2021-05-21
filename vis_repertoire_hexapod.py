@@ -43,12 +43,14 @@ def click_event(event, args):
         selected_x = int(event.xdata)
         selected_y = int(event.ydata)
         selected_solution = data[(data["x_bin"] == selected_x) & (data["y_bin"] == selected_y)]
-        # selected_solution = data[(data["y_bin"] == selected_x) & (data["z_bin"] == selected_y)]
+        
 
         # For hexapod omnitask
         print("SELECTED SOLUTION SHAPE: ", selected_solution.shape)
         selected_solution = selected_solution.iloc[0, :]
-        selected_ctrl = selected_solution.iloc[4:-2].to_numpy()
+        selected_ctrl = selected_solution.iloc[5:-4].to_numpy() # bryan archive
+        #selected_ctrl = selected_solution.iloc[4:-4].to_numpy() # luca archive
+        print("Selected ctrl shape: ", selected_ctrl.shape)
         # print(selected_ctrl[0].shape) #(1,36)
 
         # hexapod uni
@@ -72,8 +74,8 @@ def read_archive_luca(filename):
     # data = np.loadtxt(args.filename)
 
     # exchanging x & y axis + inverting left and right.
-    data["scale_x"] = (-1 * data.iloc[:, 2] + 1.2) / 3
-    data["scale_y"] = (data.iloc[:, 1] + 1.2) / 3
+    data["scale_x"] = (-1 * data.iloc[:, 2] + 1.2) / 2.4
+    data["scale_y"] = (data.iloc[:, 1] + 1.2) / 2.4
 
     # For Hexapod
     data['x_bin'] = pd.cut(x=data["scale_x"],
@@ -85,6 +87,26 @@ def read_archive_luca(filename):
 
     return data
 
+def read_archive_bryan(filename):
+    data = pd.read_csv(filename)
+    data = data.iloc[:,:-1] # drop the last column which was made because there is a comma after last value i a line
+
+    # exchanging x & y axis + inverting left and right.
+    data["scale_x"] = data.iloc[:, 1]
+    data["scale_y"] = data.iloc[:, 2] 
+    
+    # For Hexapod
+    data['x_bin'] = pd.cut(x=data["scale_x"],
+                           bins=[p / 100 for p in range(101)],
+                           labels=[p for p in range(100)])
+    data['y_bin'] = pd.cut(x=data["scale_y"],
+                           bins=[p / 100 for p in range(101)],
+                           labels=[p for p in range(100)])
+
+    return data
+
+
+
 
 if __name__ == "__main__":
 
@@ -94,7 +116,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    data = read_archive_luca(args.filename)
+    #data = read_archive_luca(args.filename)
+    data = read_archive_bryan(args.filename)
 
     # cmap = matplotlib.cm.get_cmap('Spectral') # Getting a list of color values
     # data['color_dict'] = pd.Series({k:cmap(1) for k in data['scaled_x']})
@@ -104,7 +127,9 @@ if __name__ == "__main__":
     # FOR BINS / GRID
     if args.plot_type == "grid":
         fig, ax = plt.subplots()
-        data.plot.scatter(x="x_bin", y="y_bin", c=3, colormap="viridis", s=2, ax=ax)
+        # data.plot.scatter(x="x_bin", y="y_bin", c=0, colormap="viridis", s=2, ax=ax) # bryan archive
+        data.plot.scatter(x="x_bin", y="y_bin", c=3, colormap="viridis", s=2, ax=ax) # luca archive
+
         plt.xlim(0, 100)
         plt.ylim(0, 100)
     else:
@@ -112,8 +137,8 @@ if __name__ == "__main__":
         fig, ax = plt.subplots()
 
         # FOR JUST A SCATTER PLOT OF THE DESCRIPTORS - doesnt work for interactive selection
-        # data.plot.scatter(x=2,y=3,c=0,colormap='Spectral', s=2, ax=ax, vmin=-0.1, vmax=1.2)
-        data.plot.scatter(x=1, y=2, c=0, colormap='viridis', s=2, ax=ax)
+        data.plot.scatter(x=2,y=3,c=0,colormap='Spectral', s=2, ax=ax, vmin=-0.1, vmax=1.2)
+        #data.plot.scatter(x=1, y=2, c=0, colormap='viridis', s=2, ax=ax)
 
         # data.plot.scatter(x=1,y=2,s=2, ax=ax[0])
         # data.plot.scatter(x=3,y=4,c=0,colormap='viridis', s=2, ax=ax)

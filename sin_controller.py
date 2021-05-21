@@ -24,7 +24,7 @@ class SinusoidController():
         timestep = int(np.floor(t*ARRAY_DIM)%ARRAY_DIM)
     
         for i in range(0,NUM_JOINTS,NUM_JOINTS_PER_LEG):
-            joint_angles[i] = -top_joint_maxrange*self._joint_signals[i,timestep]
+            joint_angles[i] = top_joint_maxrange*self._joint_signals[i,timestep] # +ve for bryan's repertoire -ve for Luca's
         for j in range(1,NUM_JOINTS,NUM_JOINTS_PER_LEG):
             joint_angles[j] = -bottom_joint_maxrange*self._joint_signals[j,timestep]
         for k in range(2,NUM_JOINTS,NUM_JOINTS_PER_LEG):
@@ -55,7 +55,6 @@ class SinusoidController():
         self._joint_signals[12,:] = self.sinusoid_control_signal(cur_ctrl[24], cur_ctrl[25], cur_ctrl[26])
         self._joint_signals[13,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
         self._joint_signals[14,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
-
         
         self._joint_signals[15,:] = self.sinusoid_control_signal(cur_ctrl[30], cur_ctrl[31], cur_ctrl[32])
         self._joint_signals[16,:] = self.sinusoid_control_signal(cur_ctrl[33], cur_ctrl[34], cur_ctrl[35])
@@ -91,14 +90,14 @@ class SinusoidController():
 
         for i in range(ARRAY_DIM):
             command[i] = 0
-            for d in range(1,kernel_size):
+            for d in range(1,kernel_size+1):
                 if (i-d) < 0:
                     command[i] = command[i] + temp[ARRAY_DIM+i-d]*kernel[kernel_size-d]
                 else:
                     command[i] = command[i] + temp[i-d]*kernel[kernel_size-d]
             command[i] = temp[i]*kernel[kernel_size]
 
-            for d in range(1, kernel_size):
+            for d in range(1, kernel_size+1):
                 if (i+d) >= ARRAY_DIM:
                     command[i] = command[i] + temp[i+d-ARRAY_DIM]*kernel[kernel_size+d]
                 else:
