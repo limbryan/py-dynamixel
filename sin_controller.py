@@ -15,16 +15,17 @@ class SinusoidController():
         # commanded joint pos angles from the sinusoid control signal at each timestep, t
 
         # maximum joint angle from zero, can go likewise in -ve direction - to unnormalize the square wave
-        top_joint_maxrange = (np.pi/4)/2
+        top_joint_maxrange = np.pi/(4*2)
         bottom_joint_maxrange = np.pi/4
         
         joint_angles = np.zeros(NUM_JOINTS)
 
         # % over ARRAY_DIM to ensure that it is continous even after one period to keep outputting thhe correct timestep relative to the sinusoid
         timestep = int(np.floor(t*ARRAY_DIM)%ARRAY_DIM)
-    
+
+        # special configurations -, -, - due to configuration of the robot vs the urdf
         for i in range(0,NUM_JOINTS,NUM_JOINTS_PER_LEG):
-            joint_angles[i] = top_joint_maxrange*self._joint_signals[i,timestep] # +ve for bryan's repertoire -ve for Luca's
+            joint_angles[i] = -top_joint_maxrange*self._joint_signals[i,timestep] # +ve for bryan's earlier buggy repertoire -ve for fixed repertoire
         for j in range(1,NUM_JOINTS,NUM_JOINTS_PER_LEG):
             joint_angles[j] = -bottom_joint_maxrange*self._joint_signals[j,timestep]
         for k in range(2,NUM_JOINTS,NUM_JOINTS_PER_LEG):
