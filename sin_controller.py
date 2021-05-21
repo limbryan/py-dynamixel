@@ -15,7 +15,7 @@ class SinusoidController():
         # commanded joint pos angles from the sinusoid control signal at each timestep, t
 
         # maximum joint angle from zero, can go likewise in -ve direction - to unnormalize the square wave
-        top_joint_maxrange = np.pi/4
+        top_joint_maxrange = (np.pi/4)/2
         bottom_joint_maxrange = np.pi/4
         
         joint_angles = np.zeros(NUM_JOINTS)
@@ -85,7 +85,7 @@ class SinusoidController():
 
         sum_v = 0.
         for i in range(len(kernel)):
-            kernel[i] = np.exp(-(i-kernel_size)**2/(2*sigma**2)/(sigma*np.sqrt(np.pi)))
+            kernel[i] = np.exp(-(i-kernel_size)**2/(2*sigma**2))/(sigma*np.sqrt(np.pi))
             sum_v = sum_v + kernel[i]
 
         for i in range(ARRAY_DIM):
@@ -95,7 +95,7 @@ class SinusoidController():
                     command[i] = command[i] + temp[ARRAY_DIM+i-d]*kernel[kernel_size-d]
                 else:
                     command[i] = command[i] + temp[i-d]*kernel[kernel_size-d]
-            command[i] = temp[i]*kernel[kernel_size]
+            command[i] += temp[i]*kernel[kernel_size]
 
             for d in range(1, kernel_size+1):
                 if (i+d) >= ARRAY_DIM:

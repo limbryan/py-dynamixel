@@ -10,15 +10,15 @@ if not ports:
 port = ports[0]
 print('Using the first on the list', port)
 
-dxl_io = io.DxlIO(port, baudrate=3000000, use_sync_write=True)
+dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True)
 print('Connected!')
 
 
-# ids = list()
-# for i in range(10, 70, 10):
-#     for j in range(1, 4):
-#         ids.append(i + j)
-# print("ids", ids)
+ids = list()
+for i in range(10, 70, 10):
+    for j in range(1, 4):
+        ids.append(i + j)
+print("ids", ids)
 
 # found_ids = set()
 # while len(found_ids) < 18:
@@ -26,15 +26,20 @@ print('Connected!')
 #     found_ids = set(new_ids).union(found_ids)
 #     print('Found ids:', found_ids)
 
-ids = dxl_io.scan(range(200))
+
 print(ids)
 
 
-dxl_io.enable_torque([2, 3])
+dxl_io.enable_torque(ids)
 
-ANGLE_1 = 90
-ANGLE_2 = 30
+ANGLE_1 = 180
 
+dxl_io.set_goal_position([13], np.array([ANGLE_1]), units="deg")
+time.sleep(2)
+dxl_io.set_goal_position([13], np.array([220]), units="deg")
+
+
+'''
 dxl_io.set_goal_position([2, 3], np.array([ANGLE_1, ANGLE_1]), units="deg")
 time.sleep(2)
 dxl_io.set_goal_position([2, 3], np.array([ANGLE_2, ANGLE_2]), units="deg")
@@ -46,10 +51,8 @@ time.sleep(2)
 dxl_io.set_goal_position([2, 3], np.array([ANGLE_1, ANGLE_1]), units="deg")
 time.sleep(2)
 dxl_io.set_goal_position([2, 3], np.array([ANGLE_2, ANGLE_2]), units="deg")
+'''
 time.sleep(2)
-
-
-
 
 # dxl_io.set_goal_position(ids, np.array([180, 220, 220] * 6), units="deg")
 # time.sleep(1.5)
