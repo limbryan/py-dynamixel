@@ -4,7 +4,7 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import src.io as io
+import py_dynamixel.io as io
 from hexapod_controller import Hexapod
 
 ## Example to task Hexapod class ##

@@ -2,7 +2,7 @@ import os, sys
 import glob
 import numpy as np
 from dynamixel_sdk import *
-import src.conversion as conv
+import py_dynamixel.conversion as conv
 
 ### MOTOR ADDRESSES - 
 ## Addresses for XM430-W350

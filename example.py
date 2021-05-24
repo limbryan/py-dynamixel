@@ -1,6 +1,6 @@
 import numpy as np
 import time
-import src.io as io
+import py_dynamixel.io as io
 
 ports = io.get_available_ports()
 print('available ports:', ports)

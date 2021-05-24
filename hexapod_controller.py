@@ -1,6 +1,6 @@
 import numpy as np
 import time
-import src.io as io
+import py_dynamixel.io as io
 
 from sin_controller import SinusoidController
 
