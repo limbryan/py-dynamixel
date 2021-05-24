@@ -20,6 +20,7 @@ ADDR_PRO_PRESENT_POSITION = 132
 LEN_PRO_LED             = 1
 LEN_PRO_GOAL_POSITION       = 4
 LEN_PRO_PRESENT_POSITION    = 4
+LEN_PRO_PRESENT_VELOCITY    = 4
 
 
 def _get_available_ports():
@@ -98,7 +99,8 @@ class DxlIO():
 
         # Sync definitions
         self.groupSyncWrite = GroupSyncWrite(self.portHandler, self.packetHandler, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION)
-        self.groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+        self.groupSyncReadPosition = GroupSyncRead(self.portHandler, self.packetHandler, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+        self.groupSyncReadVelocity = GroupSyncRead(self.portHandler, self.packetHandler, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
 
         self._convert = convert
         self.open_port(port, baudrate)
@@ -213,7 +215,6 @@ class DxlIO():
             DXL_HIBYTE(DXL_HIWORD(dxl_goal_position_pulse))
         ]
 
-
     ## values for read and write are all in motor ticks
     ## conversion for units happens in corresponding set and get fucntions
     def write(self, list_ids, addr, array_goals_pulses):
@@ -235,22 +236,51 @@ class DxlIO():
                 dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, list_ids[i],
                                                                                addr,
                                                                                array_goals_pulses[i])
-    def read(self, ids, addr):
+    def init_sync_read(list_ids):
+        for dxl_id in list_ids:
+            dxl_addparam_result = self.groupSyncReadPosition.addParam(dxl_id)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
+            dxl_addparam_result = self.groupSyncReadVelocity.addParam(dxl_id)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
+            
+                
+    def read(self, list_ids, addr, quantity=None):
         """takes a list of ids and the control address of the desired quantity wanting tobe read"""
         values = [] # list of values read
-        if self._sync_read and len(ids)>1:
-            print("have not implemented sync read yet")
+        
+        if self._sync_read and len(list_ids)>1 and (quantity is not None):
+            if quantity == "pos":
+                dxl_comm_result = self.groupSyncReadPosition.txRxPacket()
+                for dxl_id in list_ids:
+                    dxl_getdata_result = self.groupSyncReadPosition.isAvailable(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+                    if dxl_getdata_result != True:
+                        print("[ID:%03d] groupSyncRead getdata failed" % dxl_id)
+                        #quit()
+                    dxl_pres_result = self.groupSyncReadPosition.getData(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)  
+                    values.append(dxl_pres_result)
+
+            elif quantity == "vel":
+                dxl_comm_result = self.groupSyncReadVelocity.txRxPacket()
+                for dxl_id in list_ids:
+                    dxl_getdata_result = self.groupSyncReadVelocity.isAvailable(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
+                    if dxl_getdata_result != True:
+                        print("[ID:%03d] groupSyncRead getdata failed" % dxl_id)
+                        #quit()
+                    dxl_pres_result = self.groupSyncReadVelocity.getData(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)  
+                    values.append(dxl_pres_result)
+                                        
         else: 
             # Read present something
             for m_id in ids: 
-                dxl_value, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, m_id,
-                                                                                    addr)
+                dxl_value, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, m_id, addr)
                 values.append(dxl_value)
-            values = np.array(values)
-            return values
+
+        values = np.array(values)
+        return values
 
     def set_goal_position(self, ids, values, units="rads"):
-
         if units == "rads":
             values = conv.rads_to_pulses(values)
         elif units == "deg":
@@ -264,8 +294,7 @@ class DxlIO():
         return goal_position
 
     def get_present_position(self, ids, units="rads"):     
-        present_position = self.read(ids, ADDR_PRO_PRESENT_POSITION)
-        
+        present_position = self.read(ids, ADDR_PRO_PRESENT_POSITION, "pos")
         if units == "rads":
             present_position = conv.pulses_to_rads(present_position)
         elif units == "deg":
@@ -274,7 +303,7 @@ class DxlIO():
         return present_position
 
     def get_present_velocity(self, ids):     
-        present_velocity = self.read(ids, ADDR_PRO_PRESENT_VELOCITY)
+        present_velocity = self.read(ids, ADDR_PRO_PRESENT_VELOCITY, "vel")
         return present_velocity
 
     def get_present_current(self, ids):     
