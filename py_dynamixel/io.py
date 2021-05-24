@@ -304,6 +304,7 @@ class DxlIO():
 
     def get_present_velocity(self, ids):     
         present_velocity = self.read(ids, ADDR_PRO_PRESENT_VELOCITY, "vel")
+        present_velocity = conv.rpm_to_radps(present_velocity)
         return present_velocity
 
     def get_present_current(self, ids):     

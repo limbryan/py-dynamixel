@@ -75,6 +75,19 @@ def rads_to_pulses(values):
     return pulses.astype(int) 
 
 
+def rpm_to_radps(values):
+    "dynamixel motor gives units of joint velocities in 0.229 rev/min"
+    rpm = values*0.229
+    radps = rpm*((2*numpy.pi)/60)
+    
+    return radps
+
+
+
+
+
+
+
 
 ##
 
