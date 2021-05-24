@@ -48,8 +48,8 @@ def click_event(event, args):
         # For hexapod omnitask
         print("SELECTED SOLUTION SHAPE: ", selected_solution.shape)
         selected_solution = selected_solution.iloc[0, :]
-        selected_ctrl = selected_solution.iloc[5:-4].to_numpy() # bryan archive
-        #selected_ctrl = selected_solution.iloc[4:-4].to_numpy() # luca archive
+        #selected_ctrl = selected_solution.iloc[5:-4].to_numpy() # bryan archive
+        selected_ctrl = selected_solution.iloc[4:-4].to_numpy() # luca archive
         print("Selected ctrl shape: ", selected_ctrl.shape)
         # print(selected_ctrl[0].shape) #(1,36)
 
@@ -118,7 +118,8 @@ if __name__ == "__main__":
 
     #data = read_archive_luca(args.filename)
     data = read_archive_bryan(args.filename)
-
+    print(data["x_bin"])
+    
     # cmap = matplotlib.cm.get_cmap('Spectral') # Getting a list of color values
     # data['color_dict'] = pd.Series({k:cmap(1) for k in data['scaled_x']})
 
@@ -127,8 +128,8 @@ if __name__ == "__main__":
     # FOR BINS / GRID
     if args.plot_type == "grid":
         fig, ax = plt.subplots()
-        # data.plot.scatter(x="x_bin", y="y_bin", c=0, colormap="viridis", s=2, ax=ax) # bryan archive
-        data.plot.scatter(x="x_bin", y="y_bin", c=3, colormap="viridis", s=2, ax=ax) # luca archive
+        data.plot.scatter(x="x_bin", y="y_bin", c=0, colormap="viridis", s=2, ax=ax) # bryan archive
+        #data.plot.scatter(x="x_bin", y="y_bin", c=3, colormap="viridis", s=2, ax=ax) # luca archive
 
         plt.xlim(0, 100)
         plt.ylim(0, 100)
