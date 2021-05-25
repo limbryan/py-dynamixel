@@ -236,7 +236,8 @@ class DxlIO():
                 dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, list_ids[i],
                                                                                addr,
                                                                                array_goals_pulses[i])
-    def init_sync_read(list_ids):
+    def init_sync_read(self, list_ids):
+        print("INIT SYNC READ")
         for dxl_id in list_ids:
             dxl_addparam_result = self.groupSyncReadPosition.addParam(dxl_id)
             if dxl_addparam_result != True:
@@ -253,27 +254,31 @@ class DxlIO():
         if self._sync_read and len(list_ids)>1 and (quantity is not None):
             if quantity == "pos":
                 dxl_comm_result = self.groupSyncReadPosition.txRxPacket()
+                #if dxl_comm_result != COMM_SUCCESS:
+                #    print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
                 for dxl_id in list_ids:
-                    dxl_getdata_result = self.groupSyncReadPosition.isAvailable(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
-                    if dxl_getdata_result != True:
-                        print("[ID:%03d] groupSyncRead getdata failed" % dxl_id)
-                        #quit()
+                    #dxl_getdata_result = self.groupSyncReadPosition.isAvailable(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+                    #if dxl_getdata_result != True:
+                    #    print("[ID:%03d] groupSyncReadPos getdata failed" % dxl_id)
+                    #    #quit()
                     dxl_pres_result = self.groupSyncReadPosition.getData(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)  
                     values.append(dxl_pres_result)
 
             elif quantity == "vel":
                 dxl_comm_result = self.groupSyncReadVelocity.txRxPacket()
+                #if dxl_comm_result != COMM_SUCCESS:
+                    #print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
                 for dxl_id in list_ids:
-                    dxl_getdata_result = self.groupSyncReadVelocity.isAvailable(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
-                    if dxl_getdata_result != True:
-                        print("[ID:%03d] groupSyncRead getdata failed" % dxl_id)
-                        #quit()
+                    #dxl_getdata_result = self.groupSyncReadVelocity.isAvailable(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
+                    #if dxl_getdata_result != True:
+                    #    print("[ID:%03d] groupSyncReadVel getdata failed" % dxl_id)
+                    #    #quit()
                     dxl_pres_result = self.groupSyncReadVelocity.getData(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)  
                     values.append(dxl_pres_result)
                                         
         else: 
             # Read present something
-            for m_id in ids: 
+            for m_id in list_ids: 
                 dxl_value, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, m_id, addr)
                 values.append(dxl_value)
 

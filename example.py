@@ -10,15 +10,15 @@ if not ports:
 port = ports[0]
 print('Using the first on the list', port)
 
-dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True)
+dxl_io = io.DxlIO(port, baudrate=3000000, use_sync_write=True, use_sync_read=True)
 print('Connected!')
 
 
-ids = list()
-for i in range(10, 70, 10):
-    for j in range(1, 4):
-        ids.append(i + j)
-print("ids", ids)
+#ids = list()
+#for i in range(10, 70, 10):
+#    for j in range(1, 4):
+#        ids.append(i + j)
+#print("ids", ids)
 
 # found_ids = set()
 # while len(found_ids) < 18:
@@ -26,17 +26,17 @@ print("ids", ids)
 #     found_ids = set(new_ids).union(found_ids)
 #     print('Found ids:', found_ids)
 
-
+ids = dxl_io.scan(range(200))
+print(ids) 
+ids = [2,3]
 print(ids)
+dxl_io.init_sync_read(ids)
+#dxl_io.enable_torque(ids)
 
-
-dxl_io.enable_torque(ids)
-
-ANGLE_1 = 180
-
-dxl_io.set_goal_position([13], np.array([ANGLE_1]), units="deg")
-time.sleep(2)
-dxl_io.set_goal_position([13], np.array([220]), units="deg")
+#ANGLE_1 = 90
+#dxl_io.set_goal_position(ids, np.array([ANGLE_1, ANGLE_1]), units="deg")
+#time.sleep(2)
+#dxl_io.set_goal_position(ids, np.array([45, 45]), units="deg")
 
 
 '''
@@ -52,7 +52,7 @@ dxl_io.set_goal_position([2, 3], np.array([ANGLE_1, ANGLE_1]), units="deg")
 time.sleep(2)
 dxl_io.set_goal_position([2, 3], np.array([ANGLE_2, ANGLE_2]), units="deg")
 '''
-time.sleep(2)
+#time.sleep(2)
 
 # dxl_io.set_goal_position(ids, np.array([180, 220, 220] * 6), units="deg")
 # time.sleep(1.5)
@@ -67,17 +67,18 @@ time.sleep(2)
 # dxl_io.set_goal_position(ids, np.array([180, 180, 180] * 6), units="deg")
 # time.sleep(1.5)
 
-
-cur_pos = dxl_io.get_present_position(ids)
-print("Current posiiton: ", cur_pos)
-
+while (1): 
+    cur_pos = dxl_io.get_present_position(ids)
+    cur_vel = dxl_io.get_present_velocity(ids)
+    print("Current posiiton: ", cur_pos)
+    print("Current velocity: ", cur_vel)
+    time.sleep(1)
 # # dxl_io.set_goal_position(ids, np.array([180, 0]))
 # time.sleep(5)
 # cur_pos = dxl_io.get_present_position(ids)
 # print("Current posiiton: ", cur_pos)
 
-dxl_io.disable_torque(ids)
-
+#dxl_io.disable_torque(ids)
 
 
 dxl_io.close_port()

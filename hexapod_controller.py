@@ -8,7 +8,7 @@ class Hexapod():
     def __init__(self, port, ctrl_freq):
 
         self.port = port
-        self.dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True)
+        self.dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True, use_sync_read=True)
         print('Connected!')
 
         self.ctrl_freq = ctrl_freq
@@ -24,6 +24,8 @@ class Hexapod():
         self._traj = []
 
         self.enable_torques()
+        self.dxl_io.init_sync_read(self.ids)
+
         
     def enable_torques(self):
         self.dxl_io.enable_torque(self.ids)
@@ -77,6 +79,12 @@ class Hexapod():
         "execeute trajectories that are saved in _traj"
         start = time.time()
         for i in range(len(self._traj)):
+            # get current state
+            cur_jpos = self.dxl_io.get_present_position(self.ids)
+            cur_jvel = self.dxl_io.get_present_velocity(self.ids)
+            print(cur_jpos, cur_jvel)
+
+            # get action
             joint_pos = self._traj[i]
             self.dxl_io.set_goal_position(self.ids, joint_pos)
             elapsed = time.time() - start
