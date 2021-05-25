@@ -130,25 +130,6 @@ class DxlIO():
         # Close port
         self.portHandler.closePort()
 
-    def init_bulk_read(self, ids):
-        for m_id in ids:
-            # Add parameter storage for all Dynamixel ids present position
-            dxl_addparam_result = groupBulkRead.addParam(m_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
-            if dxl_addparam_result != True:
-                print("[ID:%03d] groupBulkRead addparam failed" % DXL1_ID)
-                quit()
-            
-            # Add parameter storage for all Dynamixel ids LED value                                                                                          
-            dxl_addparam_result = groupBulkRead.addParam(m_id, ADDR_PRO_LED, LEN_PRO_LED)
-            if dxl_addparam_result != True:
-                print("[ID:%03d] groupBulkRead addparam failed" % DXL2_ID)
-                quit()
-
-        return 1
-    
-    def init_bulk_write(self): 
-
-        return 0
     
     def ping(self, motor_id):
         dxl_model_number, dxl_comm_result, dxl_error = self.packetHandler.ping(self.portHandler, motor_id)
@@ -215,6 +196,35 @@ class DxlIO():
             DXL_HIBYTE(DXL_HIWORD(dxl_goal_position_pulse))
         ]
 
+    def init_bulk_read(self, list_ids):
+        print("INIT BULK READ")
+        for dxl_id in list_ids:
+            # Add parameter storage for all Dynamixel ids present position
+            dxl_addparam_result = self.groupBulkRead.addParam(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupBulkRead addparam failed" % dxl_id)
+                quit()
+            dxl_addparam_result = self.groupBulkRead.addParam(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupBulkWrite addparam failed" % dxl_id)
+    
+        return 1
+    
+    def init_bulk_write(self): 
+
+        return 0
+
+    def init_sync_read(self, list_ids):
+        print("INIT SYNC READ")
+        for dxl_id in list_ids:
+            dxl_addparam_result = self.groupSyncReadPosition.addParam(dxl_id)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
+            dxl_addparam_result = self.groupSyncReadVelocity.addParam(dxl_id)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
+        return 1
+    
     ## values for read and write are all in motor ticks
     ## conversion for units happens in corresponding set and get fucntions
     def write(self, list_ids, addr, array_goals_pulses):
@@ -236,15 +246,6 @@ class DxlIO():
                 dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, list_ids[i],
                                                                                addr,
                                                                                array_goals_pulses[i])
-    def init_sync_read(self, list_ids):
-        print("INIT SYNC READ")
-        for dxl_id in list_ids:
-            dxl_addparam_result = self.groupSyncReadPosition.addParam(dxl_id)
-            if dxl_addparam_result != True:
-                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
-            dxl_addparam_result = self.groupSyncReadVelocity.addParam(dxl_id)
-            if dxl_addparam_result != True:
-                print("[ID:%03d] groupSyncWrite addparam failed" % dxl_id)
             
                 
     def read(self, list_ids, addr, quantity=None):
@@ -260,7 +261,7 @@ class DxlIO():
                     #dxl_getdata_result = self.groupSyncReadPosition.isAvailable(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)
                     #if dxl_getdata_result != True:
                     #    print("[ID:%03d] groupSyncReadPos getdata failed" % dxl_id)
-                    #    #quit()
+                        #quit()
                     dxl_pres_result = self.groupSyncReadPosition.getData(dxl_id, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)  
                     values.append(dxl_pres_result)
 
@@ -272,7 +273,7 @@ class DxlIO():
                     #dxl_getdata_result = self.groupSyncReadVelocity.isAvailable(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)
                     #if dxl_getdata_result != True:
                     #    print("[ID:%03d] groupSyncReadVel getdata failed" % dxl_id)
-                    #    #quit()
+                        #quit()
                     dxl_pres_result = self.groupSyncReadVelocity.getData(dxl_id, ADDR_PRO_PRESENT_VELOCITY, LEN_PRO_PRESENT_VELOCITY)  
                     values.append(dxl_pres_result)
                                         

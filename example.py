@@ -70,9 +70,10 @@ dxl_io.set_goal_position([2, 3], np.array([ANGLE_2, ANGLE_2]), units="deg")
 while (1): 
     cur_pos = dxl_io.get_present_position(ids)
     cur_vel = dxl_io.get_present_velocity(ids)
-    print("Current posiiton: ", cur_pos)
-    print("Current velocity: ", cur_vel)
-    time.sleep(1)
+    if not np.all(cur_pos == 0):
+        print("Current posiiton: ", cur_pos)
+        print("Current velocity: ", cur_vel)
+    #time.sleep(1)
 # # dxl_io.set_goal_position(ids, np.array([180, 0]))
 # time.sleep(5)
 # cur_pos = dxl_io.get_present_position(ids)
