@@ -1,9 +1,9 @@
 import numpy as np
 
 ARRAY_DIM = 100 #PERIOD integer timesteps of one motor period/cycle
-NUM_JOINTS = 18 # hexapod wiht 3 DoF each 
-NUM_LEGS = 6
+NUM_LEGS = 4
 NUM_JOINTS_PER_LEG = 3
+NUM_JOINTS = NUM_LEGS*NUM_JOINTS_PER_LEG # hexapod wiht 3 DoF each
 
 class SinusoidController():
     def __init__(self, ctrl):
@@ -36,31 +36,33 @@ class SinusoidController():
     def compute_sin_ctrl(self):
 
         cur_ctrl = self._ctrl
-        
+        # LEG 1
         self._joint_signals[0,:] = self.sinusoid_control_signal(cur_ctrl[0], cur_ctrl[1], cur_ctrl[2])        
         self._joint_signals[1,:] = self.sinusoid_control_signal(cur_ctrl[3], cur_ctrl[4], cur_ctrl[5])
         self._joint_signals[2,:] = self.sinusoid_control_signal(cur_ctrl[3], cur_ctrl[4], cur_ctrl[5])
-
+        # LEG 2
         self._joint_signals[3,:] = self.sinusoid_control_signal(cur_ctrl[6], cur_ctrl[7], cur_ctrl[8])
         self._joint_signals[4,:] = self.sinusoid_control_signal(cur_ctrl[9], cur_ctrl[10], cur_ctrl[11])
         self._joint_signals[5,:] = self.sinusoid_control_signal(cur_ctrl[9], cur_ctrl[10], cur_ctrl[11])
-        
+        # LEG 3
         self._joint_signals[6,:] = self.sinusoid_control_signal(cur_ctrl[12], cur_ctrl[13], cur_ctrl[14])
         self._joint_signals[7,:] = self.sinusoid_control_signal(cur_ctrl[15], cur_ctrl[16], cur_ctrl[17])
         self._joint_signals[8,:] = self.sinusoid_control_signal(cur_ctrl[15], cur_ctrl[16], cur_ctrl[17])
-
+        # LEG 4
         self._joint_signals[9,:] = self.sinusoid_control_signal(cur_ctrl[18], cur_ctrl[19], cur_ctrl[20])
         self._joint_signals[10,:] = self.sinusoid_control_signal(cur_ctrl[21], cur_ctrl[22], cur_ctrl[23])
         self._joint_signals[11,:] = self.sinusoid_control_signal(cur_ctrl[21], cur_ctrl[22], cur_ctrl[23])
 
-        self._joint_signals[12,:] = self.sinusoid_control_signal(cur_ctrl[24], cur_ctrl[25], cur_ctrl[26])
-        self._joint_signals[13,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
-        self._joint_signals[14,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
-        
-        self._joint_signals[15,:] = self.sinusoid_control_signal(cur_ctrl[30], cur_ctrl[31], cur_ctrl[32])
-        self._joint_signals[16,:] = self.sinusoid_control_signal(cur_ctrl[33], cur_ctrl[34], cur_ctrl[35])
-        self._joint_signals[17,:] = self.sinusoid_control_signal(cur_ctrl[33], cur_ctrl[34], cur_ctrl[35])
-                
+        if NUM_LEGS == 6:
+            # LEG 5
+            self._joint_signals[12,:] = self.sinusoid_control_signal(cur_ctrl[24], cur_ctrl[25], cur_ctrl[26])
+            self._joint_signals[13,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
+            self._joint_signals[14,:] = self.sinusoid_control_signal(cur_ctrl[27], cur_ctrl[28], cur_ctrl[29])
+            # LEG 6
+            self._joint_signals[15,:] = self.sinusoid_control_signal(cur_ctrl[30], cur_ctrl[31], cur_ctrl[32])
+            self._joint_signals[16,:] = self.sinusoid_control_signal(cur_ctrl[33], cur_ctrl[34], cur_ctrl[35])
+            self._joint_signals[17,:] = self.sinusoid_control_signal(cur_ctrl[33], cur_ctrl[34], cur_ctrl[35])
+            
     def sinusoid_control_signal(self, amplitude, phase, duty_cycle):            
         '''
         amplitude, phase and duty cycle all lie in range [0,1]

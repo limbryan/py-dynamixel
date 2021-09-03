@@ -82,7 +82,7 @@ class Quadruped():
             # get current state
             cur_jpos = self.dxl_io.get_present_position(self.ids)
             cur_jvel = self.dxl_io.get_present_velocity(self.ids)
-            print(cur_jpos, cur_jvel)
+            #print(cur_jpos, cur_jvel)
 
             # get action
             joint_pos = self._traj[i]
@@ -112,21 +112,20 @@ def main():
     port = ports[0]
     print('Using the first on the list', port)
 
-    ctrl_freq = 100
-    Hexa = Hexapod(port, ctrl_freq)
+    ctrl_freq = 10
+    Hexa = Quadruped(port, ctrl_freq)
 
     # TRIPOD GAIT
     ctrl = [1, 0, 0.5, 0.25, 0.25, 0.5,
             1, 0.5, 0.5, 0.25, 0.75, 0.5,
             1, 0, 0.5, 0.25, 0.25, 0.5,
-            1, 0, 0.5, 0.25, 0.75, 0.5,
-            1, 0.5, 0.5, 0.25, 0.25, 0.5,
-            1, 0, 0.5, 0.25, 0.75, 0.5]
+            1, 0, 0.5, 0.25, 0.75, 0.5,]
+    
     ctrl = np.array(ctrl)
 
     Hexa.neutral_controller()
     #Hexa.relax()
-    #Hexa.run_sin_controller(ctrl, duration=2.0)
+    Hexa.run_sin_controller(ctrl, duration=3.0)
     Hexa.shutdown()
     
 
