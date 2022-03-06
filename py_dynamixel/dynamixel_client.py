@@ -38,6 +38,7 @@ LEN_PRESENT_CURRENT = 2
 LEN_PRESENT_POS_VEL_CUR = 10
 LEN_GOAL_POSITION = 4
 
+
 DEFAULT_POS_SCALE = 2.0 * np.pi / 4096  # 0.088 degrees
 # See http://emanual.robotis.com/docs/en/dxl/x/xh430-v210/#goal-velocity
 DEFAULT_VEL_SCALE = 0.229 * 2.0 * np.pi / 60.0  # 0.229 rpm
@@ -73,7 +74,6 @@ def unsigned_to_signed(value: int, size: int) -> int:
 
 class DynamixelClient:
     """Client for communicating with Dynamixel motors.
-
     NOTE: This only supports Protocol 2.
     """
 
@@ -83,13 +83,12 @@ class DynamixelClient:
     def __init__(self,
                  motor_ids: Sequence[int],
                  port: str = '/dev/ttyUSB0',
-                 baudrate: int = 1000000,
+                 baudrate: int = 2000000,
                  lazy_connect: bool = False,
                  pos_scale: Optional[float] = None,
                  vel_scale: Optional[float] = None,
                  cur_scale: Optional[float] = None):
         """Initializes a new client.
-
         Args:
             motor_ids: All motor IDs being used by the client.
             port: The Dynamixel device to talk to. e.g.
@@ -134,7 +133,6 @@ class DynamixelClient:
 
     def connect(self):
         """Connects to the Dynamixel motors.
-
         NOTE: This should be called after all DynamixelClients on the same
             process are created.
         """
@@ -176,7 +174,6 @@ class DynamixelClient:
                            retries: int = -1,
                            retry_interval: float = 0.25):
         """Sets whether torque is enabled for the motors.
-
         Args:
             motor_ids: The motor IDs to configure.
             enabled: Whether to engage or disengage the motors.
@@ -207,7 +204,6 @@ class DynamixelClient:
     def write_desired_pos(self, motor_ids: Sequence[int],
                           positions: np.ndarray):
         """Writes the given desired positions.
-
         Args:
             motor_ids: The motor IDs to write to.
             positions: The joint angles in radians to write.
@@ -226,12 +222,10 @@ class DynamixelClient:
             address: int,
     ) -> Sequence[int]:
         """Writes a value to the motors.
-
         Args:
             motor_ids: The motor IDs to write to.
             value: The value to write to the control table.
             address: The control table address to write to.
-
         Returns:
             A list of IDs that were unsuccessful.
         """
@@ -250,7 +244,6 @@ class DynamixelClient:
                    values: Sequence[Union[int, float]], address: int,
                    size: int):
         """Writes values to a group of motors.
-
         Args:
             motor_ids: The motor IDs to write to.
             values: The values to write.
@@ -332,7 +325,6 @@ class DynamixelClient:
 
 class DynamixelReader:
     """Reads data from Dynamixel motors.
-
     This wraps a GroupBulkRead from the DynamixelSDK.
     """
 
@@ -465,15 +457,13 @@ if __name__ == '__main__':
         default='/dev/ttyUSB0',
         help='The Dynamixel device to connect to.')
     parser.add_argument(
-        '-b', '--baud', default=3000000, help='The baudrate to connect with.')
+        '-b', '--baud', default=2000000, help='The baudrate to connect with.')
     parsed_args = parser.parse_args()
+
     motors = [int(motor) for motor in parsed_args.motors.split(',')]
 
-    way_points = [np.zeros(len(motors)), np.full(len(motors), np.pi/16)]
+    way_points = [np.zeros(len(motors)), np.full(len(motors), np.pi)]
 
-    print("Motors: ", motors)
-    print("Device: ", parsed_args.device)
-    print("Baudrate: ", parsed_args.baud)
     with DynamixelClient(motors, parsed_args.device,
                          parsed_args.baud) as dxl_client:
         for step in itertools.count():

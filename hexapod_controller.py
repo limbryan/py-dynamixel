@@ -8,7 +8,7 @@ class Hexapod():
     def __init__(self, port, ctrl_freq):
 
         self.port = port
-        self.dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True, use_sync_read=True)
+        self.dxl_io = io.DxlIO(port, baudrate=2000000, use_sync_write=True, use_sync_read=False)
         print('Connected!')
 
         self.ctrl_freq = ctrl_freq
@@ -80,9 +80,9 @@ class Hexapod():
         start = time.time()
         for i in range(len(self._traj)):
             # get current state
-            cur_jpos = self.dxl_io.get_present_position(self.ids)
-            cur_jvel = self.dxl_io.get_present_velocity(self.ids)
-            print(cur_jpos, cur_jvel)
+            #cur_jpos = self.dxl_io.get_present_position(self.ids)
+            #cur_jvel = self.dxl_io.get_present_velocity(self.ids)
+            #print(cur_jpos, cur_jvel)
 
             # get action
             joint_pos = self._traj[i]
@@ -125,9 +125,12 @@ def main():
     ctrl = np.array(ctrl)
 
     Hexa.neutral_controller()
+    for i in range(100):
+        time.sleep(1)
+
     #Hexa.relax()
     #Hexa.run_sin_controller(ctrl, duration=2.0)
-    Hexa.shutdown()
+    Hexa.shutdown() # shutdown already contains relax
     
 
 if __name__ == "__main__":
