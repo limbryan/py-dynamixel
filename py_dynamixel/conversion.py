@@ -16,6 +16,7 @@
 import numpy
 import itertools
 
+import numpy as np 
 from enum import Enum
 
 # MARK: - Position
@@ -56,23 +57,34 @@ velocity = {  # in degree/s
 
 
 ## custom written
-def pulses_to_degree(values):
+def pulses_to_degree(values, motor_type='xm'):
     ''' takes in an array of values'''
-    degree = values*(360/4096)
+    if motor_type == 'xm':
+        degree = values*(360/4096)
+    elif motor_type == 'xl':
+        degree = (values-512)*(300/1024)
     return degree
 
-def degree_to_pulses(values):
-    pulses = values*(4096/360)
+def degree_to_pulses(values, motor_type='xm'):
+    if motor_type == 'xm':
+        pulses = values*(4096/360)
+    elif motor_type == 'xl':
+        pulses = values*(1024/300)+512
+        
     return pulses.astype(int) 
 
-def pulses_to_rads(values):
+def pulses_to_rads(values, motor_type='xm'):
     ''' takes in an array of values'''
-    rads = values*(2*numpy.pi/4096)
+    deg = pulses_to_degree(values, motor_type)
+    rads = np.radians(deg)
     return rads
 
-def rads_to_pulses(values):
-    pulses = values*(4096/(2*numpy.pi))
+def rads_to_pulses(values, motor_type='xm'):
+    deg = np.degrees(values)
+    pulses = degree_to_pulses(deg, motor_type)
     return pulses.astype(int) 
+
+
 
 
 def rpm_to_radps(values):

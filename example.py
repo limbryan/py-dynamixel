@@ -10,7 +10,7 @@ if not ports:
 port = ports[0]
 print('Using the first on the list', port)
 
-dxl_io = io.DxlIO(port, baudrate=3000000, use_sync_write=True, use_sync_read=True)
+dxl_io = io.DxlIO(port, baudrate=1000000, use_sync_write=False, use_sync_read=False)
 print('Connected!')
 
 #ids = list()
@@ -29,13 +29,13 @@ ids = dxl_io.scan(range(200))
 print(ids) 
 #ids = [2,3]
 #print(ids)
-
-dxl_io.init_sync_read(ids)
-#dxl_io.enable_torque(ids)
-
-#ANGLE_1 = 90
-#dxl_io.set_goal_position(ids, np.array([ANGLE_1, ANGLE_1]), units="deg")
-#time.sleep(2)
+dxl_io.configure(ids)
+#dxl_io.init_sync_read(ids)
+#pulse_commands = np.ones(12, dtype=int)*512
+degree_commands = np.ones(12)*np.pi/4
+dxl_io.enable_torque(ids)
+dxl_io.set_goal_position(ids, degree_commands, units="rads")
+time.sleep(5)
 #dxl_io.set_goal_position(ids, np.array([45, 45]), units="deg")
 
 
@@ -80,8 +80,6 @@ dxl_io.set_goal_position([2, 3], np.array([ANGLE_2, ANGLE_2]), units="deg")
 # cur_pos = dxl_io.get_present_position(ids)
 # print("Current posiiton: ", cur_pos)
 
-#dxl_io.disable_torque(ids)
-
-
+dxl_io.disable_torque(ids)
 dxl_io.close_port()
 

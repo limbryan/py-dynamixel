@@ -6,21 +6,39 @@ import py_dynamixel.conversion as conv
 
 ### MOTOR ADDRESSES - 
 ## Addresses for XM430-W350
-ADDR_PRO_TORQUE_ENABLE = 64
-ADDR_PRO_LED = 65
-ADDR_PRO_POSITION_D = 80
-ADDR_PRO_POSITION_I = 82
-ADDR_PRO_POSITION_P = 84
-ADDR_PRO_GOAL_POSITION = 116
-ADDR_PRO_PRESENT_CURRENT = 126
-ADDR_PRO_PRESENT_VELOCITY = 128
-ADDR_PRO_PRESENT_POSITION = 132
+#ADDR_PRO_TORQUE_ENABLE = 64
+#ADDR_PRO_LED = 65
+#ADDR_PRO_POSITION_D = 80
+#ADDR_PRO_POSITION_I = 82
+#ADDR_PRO_POSITION_P = 84
+#ADDR_PRO_GOAL_POSITION = 116
+#ADDR_PRO_PRESENT_CURRENT = 126
+#ADDR_PRO_PRESENT_VELOCITY = 128
+#ADDR_PRO_PRESENT_POSITION = 132
 
 # Data Byte Length                                                                                                                                                    
+#LEN_PRO_LED             = 1
+#LEN_PRO_GOAL_POSITION       = 4
+#LEN_PRO_PRESENT_POSITION    = 4
+#LEN_PRO_PRESENT_VELOCITY    = 4
+
+## Addresses for XL-321
+ADDR_PRO_TORQUE_ENABLE = 24
+ADDR_PRO_LED = 25
+ADDR_PRO_POSITION_D = 27
+ADDR_PRO_POSITION_I = 28
+ADDR_PRO_POSITION_P = 29
+ADDR_PRO_GOAL_POSITION = 30
+ADDR_PRO_PRESENT_CURRENT = 45
+ADDR_PRO_PRESENT_VELOCITY = 39
+ADDR_PRO_PRESENT_POSITION = 37
+
+# Data Byte Length                                                                                                                                                
 LEN_PRO_LED             = 1
-LEN_PRO_GOAL_POSITION       = 4
-LEN_PRO_PRESENT_POSITION    = 4
-LEN_PRO_PRESENT_VELOCITY    = 4
+LEN_PRO_GOAL_POSITION       = 2
+LEN_PRO_PRESENT_POSITION    = 2
+LEN_PRO_PRESENT_VELOCITY    = 2
+
 
 
 def _get_available_ports():
@@ -130,7 +148,16 @@ class DxlIO():
         # Close port
         self.portHandler.closePort()
 
-    
+    def configure(self, ids):
+        ADDR_PRO_RETURN_LEVEL = 17
+        RETURN_LEVEL = 1
+        ADDR_PRO_DELAY_TIME = 5
+        DELAY = 0
+        self.portHandler.setPacketTimeoutMillis(1)
+        for id in ids: 
+            self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_PRO_RETURN_LEVEL, RETURN_LEVEL)
+            self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_PRO_DELAY_TIME, DELAY)
+        
     def ping(self, motor_id):
         dxl_model_number, dxl_comm_result, dxl_error = self.packetHandler.ping(self.portHandler, motor_id)
         if dxl_comm_result != COMM_SUCCESS:
@@ -142,7 +169,7 @@ class DxlIO():
         else:
             print("[ID:%03d] ping Succeeded. Dynamixel model number : %d" % (motor_id, dxl_model_number))
             return True
-
+    
     def broadcast_ping(self):
         # Try to broadcast ping the Dynamixel                                                                                      
         dxl_data_list, dxl_comm_result = self.packetHandler.broadcastPing(self.portHandler)
@@ -189,12 +216,14 @@ class DxlIO():
 
 
     def _get_byte_array_sync(self, dxl_goal_position_pulse):
-        return [
-            DXL_LOBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
-            DXL_HIBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
-            DXL_LOBYTE(DXL_HIWORD(dxl_goal_position_pulse)),
-            DXL_HIBYTE(DXL_HIWORD(dxl_goal_position_pulse))
+        return[DXL_LOBYTE(dxl_goal_position_pulse), DXL_HIBYTE(dxl_goal_position_pulse)
         ]
+        #return [
+        #    DXL_LOBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
+        #    DXL_HIBYTE(DXL_LOWORD(dxl_goal_position_pulse)),
+        #    DXL_LOBYTE(DXL_HIWORD(dxl_goal_position_pulse)),
+        #    DXL_HIBYTE(DXL_HIWORD(dxl_goal_position_pulse))
+        #]
 
     def init_bulk_read(self, list_ids):
         print("INIT BULK READ")
@@ -242,10 +271,12 @@ class DxlIO():
             self.groupSyncWrite.clearParam()
         else:
             # write something
+            # write the correct amount of bytes depending on the robot - if xl-320 write2byte, if xm-430 write4byte
             for i in range(len(list_ids)):
-                dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, list_ids[i],
+                dxl_comm_result, dxl_error = self.packetHandler.write2ByteTxRx(self.portHandler, list_ids[i],
                                                                                addr,
                                                                                array_goals_pulses[i])
+                print(dxl_comm_result, dxl_error)
             
                 
     def read(self, list_ids, addr, quantity=None):
@@ -286,11 +317,13 @@ class DxlIO():
         values = np.array(values)
         return values
 
-    def set_goal_position(self, ids, values, units="rads"):
+    def set_goal_position(self, ids, values, units="rads", motor_type='xl'):
         if units == "rads":
-            values = conv.rads_to_pulses(values)
+            values = conv.rads_to_pulses(values, motor_type=motor_type)
         elif units == "deg":
-            values = conv.degree_to_pulses(values)
+            values = conv.degree_to_pulses(values, motor_type=motor_type)
+        elif units == "pulses":
+            values = values
         
         self.write(ids, ADDR_PRO_GOAL_POSITION, values)
         

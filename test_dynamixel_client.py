@@ -2,6 +2,9 @@ import argparse
 import itertools
 from dynamixel_client import DynamixelClient
 import py_dynamixel.io as io
+import numpy as np
+import time
+
 
 ports = io.get_available_ports()
 print('available ports:', ports)
@@ -12,7 +15,7 @@ print('Using the first on the list', port)
 device_path = port
 
 
-baud_rate = 3000000
+baud_rate = 1000000
 
 # motor ids
 motors = list()
@@ -24,12 +27,13 @@ print("ids", motors)
 way_points = [np.zeros(len(motors)), np.full(len(motors), np.pi/4)]
 
 dxl_client = DynamixelClient(motors, device_path, baud_rate) 
+dxl_client.connect()
 
 for step in itertools.count():
     if step > 0 and step % 50 == 0:
         
         way_point = way_points[(step // 100) % len(way_points)]
-        print('Writing: {}'.format(way_point.tolist()))
+        #print('Writing: {}'.format(way_point.tolist()))
         dxl_client.write_desired_pos(motors, way_point)
 
     read_start = time.time()
@@ -38,6 +42,6 @@ for step in itertools.count():
         print('[{}] Frequency: {:.2f} Hz'.format(
             step, 1.0 / (time.time() - read_start)))
         print('> Pos: {}'.format(pos_now.tolist()))
-        print('> Vel: {}'.format(vel_now.tolist()))
-        print('> Cur: {}'.format(cur_now.tolist()))
+        #print('> Vel: {}'.format(vel_now.tolist()))
+        #print('> Cur: {}'.format(cur_now.tolist()))
             
