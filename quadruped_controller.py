@@ -86,9 +86,11 @@ class Quadruped():
     def run_new_sin_controller(self, ctrl, duration):
 
         ctrl = np.asarray(ctrl)
-        for t in np.arange(0,duration,1.0/self.ctrl_freq):
+        
+        for t, tim in enumerate(np.arange(0,duration,1.0/self.ctrl_freq)):
             # get control parameters
-            amplitudes_top = ctrl[np.aarray([0, 4, 8, 12])]
+            
+            amplitudes_top = ctrl[np.asarray([0, 4, 8, 12])]
             phases_top = ctrl[np.asarray([1, 5, 9, 13])]
             amplitudes_bottom = ctrl[np.asarray([2, 6, 10, 14])]
             phases_bottom = ctrl[np.asarray([3, 7, 11, 15])]
@@ -100,8 +102,8 @@ class Quadruped():
             actions = np.zeros(12)
             actions[np.asarray([0, 3, 6, 9])] = top_actions
             actions[np.asarray([1, 4, 7, 10])] = bottom_actions
-            actions[np.asarray([2, 5, 8, 11])] = -1 * bottom_actions
-
+            actions[np.asarray([2, 5, 8, 11])] = bottom_actions #-1 *bottom_actions
+            #print(actions)
             command = actions
             self._traj.append(command)
 
@@ -156,14 +158,28 @@ def main():
     #        1, 0, 0.5, 0.25, 0.75, 0.5,]
 
     #ctrl = [-0.7840116, -0.13674164, -0.09958146, -0.256268, -0.8670167, 0.18974361,
-    #        0.1044462, -0.12208096, 0.76759064 -0.04266164, 0.44489166, -0.02280497
+    #        0.1044462, -0.12208096, 0.76759064, -0.04266164, 0.44489166, -0.02280497,
     #        0.8566111, -0.09534891, 0.6469337, -0.62066144]
-    #ctrl = np.array(ctrl)
+    #ctrl = [-0.96937984, -0.36611515,  0.07884257,  0.27127394,
+    #         -0.9935326 , -0.4245077 ,  0.08549317,  0.5454599 ,
+    #          0.8169315 ,  0.30566746, -0.8654227 , -0.548556  ,
+    #         -0.86666745,  0.68196094,  0.39499295,  0.7395957 ]
 
+    ctrl = [-0.02151023, -0.04896656,  0.0726631 ,  0.10821316, # leg 1
+              0.10432949,  0.00208104,  0.12384317, -0.0074433 , # leg 2
+             -0.83339214,  0.08297074, -0.27983293, -0.09963401, # leg 3
+              0.79204786, -0.12445881,  0.22914657, -0.01037501] # leg 4
+
+    ctrl = [-0.02151023, -0.04896656,  0.0726631 ,  0.10821316, # leg 1
+            0.79204786, -0.12445881,  0.22914657, -0.01037501, # leg 4
+            0.10432949,  0.00208104,  0.12384317, -0.0074433 , # leg 2
+            -0.83339214,  0.08297074, -0.27983293, -0.09963401] # leg 3
+    ctrl = ctrl
+    
     Hexa.neutral_controller()
     #Hexa.relax()
     #Hexa.run_sin_controller(ctrl, duration=3.0)
-    #Hexa.run_new_sin_controller(ctrl, duration=3.0)
+    Hexa.run_new_sin_controller(ctrl, duration=6.0)
     Hexa.shutdown()
     
 
