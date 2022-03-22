@@ -259,7 +259,6 @@ class DxlIO():
     def write(self, list_ids, addr, array_goals_pulses):
         """ takes a list of ids and the control address of desired quantity, and the actual quantities to write to """
         if self._sync_write and len(list_ids)>1:
-
             for dxl_id, goal_position_pulse in zip(list_ids, array_goals_pulses):
                 dxl_addparam_result = self.groupSyncWrite.addParam(dxl_id, self._get_byte_array_sync(goal_position_pulse))
                 if dxl_addparam_result != True:
